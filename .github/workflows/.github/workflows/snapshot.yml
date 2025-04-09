@@ -1,0 +1,34 @@
+name: Snapshot Leaderboard
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Every hour, on the hour (UTC)
+  workflow_dispatch:  # Allows manual triggering in GitHub
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies (if any)
+      run: npm install
+
+    - name: Run leaderboard fetch script
+      run: node scripts/fetch-leaderboard.js
+
+    - name: Commit and push snapshot
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add snapshots
+        git commit -m "Add leaderboard snapshot $(date -u +'%Y-%m-%dT%H:%M:%SZ')" || echo "No changes to commit"
+        git push
+
